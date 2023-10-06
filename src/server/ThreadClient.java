@@ -22,6 +22,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -89,11 +90,11 @@ public class ThreadClient extends Thread {
             //un mensaje que si le avisamos lo que tiene que hacer           
             lconsulta.LoginConsultaInicio();
             //enviamos
-            outObjeto.writeObject(lconsulta);
+            outObjeto.writeObject(lconsulta);//envio mensaje 1 al cliente////////////////////////////////////////////////////////
             
             
             //Ahora obtenemos el objeto lconsulta modificado que nos envia el cliente    
-            lconsulta = (LoginConsulta) inObjeto.readObject();
+            lconsulta = (LoginConsulta) inObjeto.readObject();//recibo mensaje 1 del cliente////////////////////////////////////////////////////////
             //y ahora lo analizamos
             //dependiendo si el atributo tipoDeLogin es 1 o 2 sabremos si es login o consulta
             if(lconsulta.getTipoDeLogin().equalsIgnoreCase("1")){//si es 1 nos envia usuario y contraseña
@@ -103,7 +104,7 @@ public class ThreadClient extends Thread {
                         System.out.println("Ciente desconectado, ya esta conectado ese usuario");
                         lconsulta.setError("1");
                         lconsulta.setInfoDelServer("Este usuario ya esta logeado. Utiliza el código adjudicado");
-                        outObjeto.writeObject(lconsulta);
+                        outObjeto.writeObject(lconsulta);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
                         client.close();
                         System.out.println(logins);                       
                     }else{
@@ -114,7 +115,7 @@ public class ThreadClient extends Thread {
                         lconsulta.setCodigo(codigo);
                         lconsulta.setError("0");
                         lconsulta.setInfoDelServer("Bienvenido.. te enviamos tu codigo de acceso: "+codigo);
-                        outObjeto.writeObject(lconsulta);
+                        outObjeto.writeObject(lconsulta);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
                         
                         System.out.println("Users logeados: "+logins);
                         
@@ -124,7 +125,7 @@ public class ThreadClient extends Thread {
                     System.out.println("Ciente desconectado, error en el login");
                     lconsulta.setError("2");
                     lconsulta.setInfoDelServer("Error en las credenciales, comprueba que las escribes correctamente");
-                    outObjeto.writeObject(lconsulta);
+                    outObjeto.writeObject(lconsulta);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
                     
                     System.out.println(logins);                      
                 }
@@ -150,26 +151,26 @@ public class ThreadClient extends Thread {
                         if(nombreTabla.equalsIgnoreCase("empleados") && columna.equalsIgnoreCase("0")){
                             listaEmpleados = conexion.getEmpleados();
                             //devolvemos la respueta
-                            outObjeto.writeObject(listaEmpleados);
+                            outObjeto.writeObject(listaEmpleados);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
 
                         }else if(nombreTabla.equalsIgnoreCase("empleados") && columna.equalsIgnoreCase("nom")){
                             listaEmpleados =conexion.getEmpleadosNombre(palabraAbuscar);
                             //devolvemos la respueta
-                            outObjeto.writeObject(listaEmpleados);
+                            outObjeto.writeObject(listaEmpleados);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
 
                         }else if(nombreTabla.equalsIgnoreCase("empleados") && columna.equalsIgnoreCase("dni")){
                             listaEmpleados =conexion.getEmpleadosDNI(palabraAbuscar);
                             //devolvemos la respueta
-                            outObjeto.writeObject(listaEmpleados);
+                            outObjeto.writeObject(listaEmpleados);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
                             //a partir de aqui vamos con users
                         }else if(nombreTabla.equalsIgnoreCase("users") && columna.equalsIgnoreCase("0")){//todos los users
                             listaUsers =conexion.getUsuarios();
                             //devolvemos la respueta
-                            outObjeto.writeObject(listaUsers);
+                            outObjeto.writeObject(listaUsers);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
                         }else if(nombreTabla.equalsIgnoreCase("users") && columna.equalsIgnoreCase("login")){//usuario por login
                             listaUsers =conexion.getUsuarioLogin(palabraAbuscar);
                             //devolvemos la respueta
-                            outObjeto.writeObject(listaUsers);
+                            outObjeto.writeObject(listaUsers);//envio mensaje 2 al cliente////////////////////////////////////////////////////////
                         }
                         //y habra que ir añadiendo
                         
@@ -190,17 +191,25 @@ public class ThreadClient extends Thread {
               
                 
             }else if(lconsulta.getTipoDeLogin().equalsIgnoreCase("3")){
+  
                 //System.out.println("Valor del tipo de login: "+lconsulta.getTipoDeLogin()+ " Valor del codigo de usuario: "+lconsulta.getCodigo());
+                
                 if(lconsulta.getCodigo().equalsIgnoreCase("0") || lconsulta.getCodigo().equals(null)){
                     System.out.println("El cliente ha mandado un codigo erroneo para cerrar sesion.. se ignora");
                 }else{
                     System.out.println("El cliente "+lconsulta.getCodigo()+" ha cerrado sesion");
+                    lconsulta.setInfoDelServer("Cerrando sesion en el server.. hasta otra");
+                    outObjeto.writeObject(lconsulta);
                     logins.remove(lconsulta.getCodigo());//su el usuario sale, se borra el HashMap el dni
                     System.out.println("Users conectados: "+logins);
 
                 }
-            
-                
+                /*
+                    lconsulta.setInfoDelServer("Cerrando sesion en el server.. hasta otra");
+                    outObjeto.writeObject(lconsulta);
+                    logins.remove(lconsulta.getCodigo());//su el usuario sale, se borra el HashMap el dni
+                    System.out.println("Users conectados: "+logins);
+                */
               
             }else{
                 System.out.println("Este codigo de tipoDeLogin no existe, de momento solo hay 1,2 y 3"); 
@@ -224,7 +233,7 @@ public class ThreadClient extends Thread {
             Logger.getLogger(ThreadClient.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ThreadClient.class.getName()).log(Level.SEVERE, null, ex);
-        } finally{
+        }finally{
                 try {
                     if (client != null) {
                         client.close();
